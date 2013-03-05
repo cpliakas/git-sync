@@ -1,9 +1,9 @@
 Overview
 ========
 
-GitSync is a PHP library the synchronizes a source repository with a destination
-repository. This project integrates with the [Git Wrapper](https://github.com/cpliakas/git-wrapper)
-library.
+GitSync is a PHP library that synchronizes a source repository with a
+destination repository. This project integrates with the
+[Git Wrapper](https://github.com/cpliakas/git-wrapper) library.
 
 
 Usage

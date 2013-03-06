@@ -55,9 +55,6 @@ class GitMirror
      * @param string $dest_repo
      *   The Git URL of the destination repository that the source is being
      *   mirrored to.
-     * @param string $directory
-     *   The directory that the source repository will be cloned to. Pass null
-     *   for
      *
      * @return GitWorkingCopy
      */

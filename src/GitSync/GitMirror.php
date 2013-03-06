@@ -14,7 +14,6 @@
 namespace GitSync;
 
 use GitWrapper\GitWorkingCopy;
-use GitWrapper\GitWrapper;
 use GitSync\Event\GitMirrorEvent;
 
 /**
@@ -67,18 +66,12 @@ class GitMirror
         $dispatcher = $this->_git->getWrapper()->getDispatcher();
         $event = new GitMirrorEvent($this->_git, $this->_sourceRepo, $dest_repo);
 
-        $directory = $this->_git->getDirectory();
-        if (null === $directory) {
-            $directory = GitWrapper::parseRepositoryName($this->_sourceRepo);
-        }
-
-        // Checkout the repository if it doesn't exist.
-        // @todo Add a more sophisticated check.
-        if (!is_dir($directory)) {
-            $this->_git->clone($this->_sourceRepo, $directory, array('mirror' => true));
+        if (!$this->_git->isCloned()) {
+            $this->_git->clone($this->_sourceRepo, array('mirror' => true));
             $this->_git->remote('add', 'mirrored', $dest_repo);
         }
 
+        $dispatcher->dispatch(GitSyncEvents::MIRROR_PRE_FETCH);
         $this->_git->fetch();
 
         $dispatcher->dispatch(GitSyncEvents::MIRROR_PRE_COMMIT);

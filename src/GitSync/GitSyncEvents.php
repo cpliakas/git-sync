@@ -17,6 +17,13 @@ namespace GitSync;
 final class GitSyncEvents
 {
     /**
+     * Event thrown prior executing the `git fetch --all` command.
+     *
+     * @var string
+     */
+    const MIRROR_PRE_FETCH = 'git.mirror.pre_fetch';
+
+    /**
      * Event thrown prior executing the `git push --mirror` command.
      *
      * @var string

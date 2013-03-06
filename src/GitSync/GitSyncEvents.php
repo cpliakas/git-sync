@@ -17,23 +17,37 @@ namespace GitSync;
 final class GitSyncEvents
 {
     /**
-     * Event thrown prior executing the `git fetch --all` command.
+     * Event thrown prior executing the `git fetch` command.
      *
      * @var string
      */
-    const MIRROR_PRE_FETCH = 'git.mirror.pre_fetch';
+    const PRE_FETCH = 'git.sync.all.pre_fetch';
 
     /**
-     * Event thrown prior executing the `git push --mirror` command.
+     * Event thrown prior to executing the `git push` command.
      *
      * @var string
      */
-    const MIRROR_PRE_COMMIT = 'git.mirror.pre_commit';
+    const PRE_PUSH = 'git.sync.all.pre_push';
 
     /**
-     * Event thrown after executing the `git push --mirror` command.
+     * Event thrown after executing the `git push` command.
      *
      * @var string
      */
-    const MIRROR_POST_COMMIT = 'git.mirror.post_commit';
+    const POST_PUSH = 'git.sync.all.pre_push';
+
+    /**
+     * Event thrown prior to executing the `git push` command on a branch.
+     *
+     * @var string
+     */
+    const PRE_PUSH_BRANCH = 'git.sync.branch.pre_push';
+
+    /**
+     * Event thrown after executing the `git push` command on a branch.
+     *
+     * @var string
+     */
+    const POST_PUSH_BRANCH = 'git.sync.branch.pre_push';
 }

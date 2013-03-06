@@ -14,39 +14,21 @@
 namespace GitSync;
 
 use GitWrapper\GitWorkingCopy;
-use GitSync\Event\GitMirrorEvent;
+use GitSync\Event\GitSyncEvent;
 
 /**
  * Synchronizes a source repository to a mirror.
  */
-class GitMirror
+class GitMirror extends GitSync
 {
     /**
-     * The working copy of the source repository being mirrored.
+     * Returns the Git URL of the source repository being mirrored.
      *
-     * @var GitWorkingCopy
+     * @return string
      */
-    protected $_git;
-
-    /**
-     * The URL of the source repository being mirrored.
-     *
-     * @var string
-     */
-    protected $_sourceRepo;
-
-    /**
-     * Constructs a GitMirror object.
-     *
-     * @param GitMirror $git
-     *   The working copy of the cloned source repository.
-     * @param string $source_repo
-     *   The Git URL of the source repository.
-     */
-    public function __construct(GitWorkingCopy $git, $source_repo)
+    public function getSourceRepository()
     {
-        $this->_git = $git;
-        $this->_sourceRepo = $source_repo;
+        return $this->_repo;
     }
 
     /**
@@ -60,22 +42,25 @@ class GitMirror
      */
     public function sync($dest_repo)
     {
-        $dispatcher = $this->_git->getWrapper()->getDispatcher();
-        $event = new GitMirrorEvent($this->_git, $this->_sourceRepo, $dest_repo);
+        $source_repo = $this->getSourceRepository();
 
-        // Clone the source repository if it isn't already cloned.
+        $dispatcher = $this->_git->getWrapper()->getDispatcher();
+        $event = new GitSyncEvent($this, $dest_repo);
+
+        // Clone the source repository if it isn't already cloned. Add the
+        // destination repository as a remote.
         if (!$this->_git->isCloned()) {
-            $this->_git->clone($this->_sourceRepo, array('mirror' => true));
+            $this->_git->clone($source_repo, array('mirror' => true));
             $this->_git->remote('add', 'mirrored', $dest_repo);
         }
 
         // Download objects and refs from the source repository.
-        $dispatcher->dispatch(GitSyncEvents::MIRROR_PRE_FETCH);
+        $dispatcher->dispatch(GitSyncEvents::PRE_FETCH, $event);
         $this->_git->fetch();
 
         // Mirror all refs to the remote repository.
-        $dispatcher->dispatch(GitSyncEvents::MIRROR_PRE_COMMIT);
+        $dispatcher->dispatch(GitSyncEvents::PRE_PUSH, $event);
         $this->_git->push('mirrored', array('mirror' => true));
-        $dispatcher->dispatch(GitSyncEvents::MIRROR_POST_COMMIT);
+        $dispatcher->dispatch(GitSyncEvents::POST_PUSH, $event);
     }
 }

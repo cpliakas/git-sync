@@ -1,4 +1,4 @@
-<?
+<?php
 
 /**
  * Synchronizes Git repositories.

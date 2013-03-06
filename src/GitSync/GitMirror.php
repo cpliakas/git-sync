@@ -63,14 +63,17 @@ class GitMirror
         $dispatcher = $this->_git->getWrapper()->getDispatcher();
         $event = new GitMirrorEvent($this->_git, $this->_sourceRepo, $dest_repo);
 
+        // Clone the source repository if it isn't already cloned.
         if (!$this->_git->isCloned()) {
             $this->_git->clone($this->_sourceRepo, array('mirror' => true));
             $this->_git->remote('add', 'mirrored', $dest_repo);
         }
 
+        // Download objects and refs from the source repository.
         $dispatcher->dispatch(GitSyncEvents::MIRROR_PRE_FETCH);
         $this->_git->fetch();
 
+        // Mirror all refs to the remote repository.
         $dispatcher->dispatch(GitSyncEvents::MIRROR_PRE_COMMIT);
         $this->_git->push('mirrored', array('mirror' => true));
         $dispatcher->dispatch(GitSyncEvents::MIRROR_POST_COMMIT);

@@ -80,22 +80,24 @@ class GitFork extends GitSync
         $all_branches = array_flip($branches->all());
 
         $dispatcher->dispatch(GitSyncEvents::PRE_PUSH, $event);
-        foreach ($branches->remote() as $branch) {
-            if ('master' == $branch && $this->_skipMaster) {
+        foreach ($branches->remote() as $remote_branch) {
+
+            $local_branch = substr($remote_branch, 9);
+            if ('master' == $local_branch && $this->_skipMaster) {
                 continue;
             }
 
-            if (!isset($all_branches[$branch])) {
-                $this->_git->checkout($branch, "upstream/$branch", array('b' => true));
+            if (!isset($all_branches[$local_branch])) {
+                $this->_git->checkout($remote_branch, array('b' => $local_branch));
             }
             else {
-                $this->_git->checkout($branch);
-                $this->_git->pull('upstream', $branch);
+                $this->_git->checkout($local_branch);
+                $this->_git->pull('upstream', $local_branch);
             }
 
             $event->setBranch($source_repo);
             $dispatcher->dispatch(GitSyncEvents::PRE_PUSH_BRANCH, $event);
-            $this->_git->push('origin', $branch);
+            $this->_git->push('origin', $local_branch);
             $dispatcher->dispatch(GitSyncEvents::POST_PUSH_BRANCH, $event);
             $event->unsetBranch($source_repo);
         }

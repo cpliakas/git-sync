@@ -53,6 +53,38 @@ class GitFork extends GitSync
     }
 
     /**
+     * Fetches remotes via the `git remote` command.
+     *
+     * @return array
+     */
+    public function fetchRemotes()
+    {
+        $git = clone $this->_git;
+        $git->clearOutput();
+        $output = (string) $git->remote();
+        return preg_split("/\r\n|\n|\r/", rtrim($output));
+    }
+
+    /**
+     * Returns a regex pattern to extract the local branch from remotes.
+     *
+     * @param array $remotes
+     *   An array of remotes.
+     *
+     * @return string
+     */
+    public function branchPattern(array $remotes)
+    {
+        $parts = array();
+        foreach ($remotes as $remote) {
+            if ($remote != 'origin') {
+                $parts[] = preg_quote($remote, '@');
+            }
+        }
+        return '@^(?:' . join('|', $parts) . ')/(.*)$@';
+    }
+
+    /**
      * Synchronizes the destination repository with a source repository.
      *
      * @param string $source_repo
@@ -78,11 +110,17 @@ class GitFork extends GitSync
 
         $branches = $this->_git->getBranches();
         $all_branches = array_flip($branches->all());
+        $pattern = $this->branchPattern($this->fetchRemotes());
 
         $dispatcher->dispatch(GitSyncEvents::PRE_PUSH, $event);
         foreach ($branches->remote() as $remote_branch) {
 
-            $local_branch = substr($remote_branch, 9);
+            // Extract the local branch from the remote.
+            if (!preg_match($pattern, $remote_branch, $matches)) {
+                continue;
+            }
+
+            $local_branch = $matches[1];
             if ('master' == $local_branch && $this->_skipMaster) {
                 continue;
             }
